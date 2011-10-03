@@ -170,6 +170,21 @@ int VoiceMaker::Filter(char **filterdText, char *text) {
         { "ヴェ", sizeof("ヴェ") -1, "ベ", sizeof("ベ") -1 },
         { "ゔぉ", sizeof("ゔぉ") -1, "ぼ", sizeof("ぼ") -1 },
         { "ヴォ", sizeof("ヴォ") -1, "ボ", sizeof("ボ") -1 },
+        { "ぁ", sizeof("ぁ") -1, "あ", sizeof("あ") -1 },
+        { "ぃ", sizeof("ぃ") -1, "い", sizeof("い") -1 },
+        { "ぅ", sizeof("ぅ") -1, "う", sizeof("う") -1 },
+        { "ぇ", sizeof("ぇ") -1, "え", sizeof("え") -1 },
+        { "ぉ", sizeof("ぉ") -1, "お", sizeof("お") -1 },
+        { "き", sizeof("き") -1, "キ", sizeof("キ") -1 },
+        { "し", sizeof("し") -1, "シ", sizeof("シ") -1 },
+        { "に", sizeof("に") -1, "ニ", sizeof("ニ") -1 },
+        { "み", sizeof("み") -1, "ミ", sizeof("ミ") -1 },
+        { "り", sizeof("り") -1, "リ", sizeof("リ") -1 },
+        { "ぎ", sizeof("ぎ") -1, "ギ", sizeof("ギ") -1 },
+        { "じ", sizeof("じ") -1, "ジ", sizeof("ジ") -1 },
+        { "ゃ", sizeof("ゃ") -1, "ャ", sizeof("ャ") -1 },
+        { "ゅ", sizeof("ゅ") -1, "ュ", sizeof("ュ") -1 },
+        { "ょ", sizeof("ょ") -1, "ョ", sizeof("ョ") -1 },
     };
 
     if (newText == NULL ||
