@@ -29,8 +29,11 @@ public:
 private:
     const char *base64char;
  
-    void ConvertFree(char *newText, mecab_t *mecab, unsigned char *modelData, unsigned char *waveData);
+    void ConvertFree(char *newText, mecab_t *mecab, char *filterdText, unsigned char *modelData, unsigned char *waveData);
     Handle<Value> Convert(const char* text, int textLength, int speed, const char *modelFile);
+
+    void FilterFree(char *newText);
+    int Filter(char **filterdText, char *text);
 
     void LoadFileFree(unsigned char *fileData);
     int LoadFile(const char *filePath, unsigned char **fileData, size_t *fileSize);
@@ -130,10 +133,93 @@ int VoiceMaker::LoadFile(const char *filePath, unsigned char **fileData, size_t 
     return 0;
 }
 
-void VoiceMaker::ConvertFree(char *newText, mecab_t *mecab, unsigned char *modelData, unsigned char *waveData) {
+void VoiceMaker::FilterFree(char *filterdText) {
+    free(filterdText);
+}
+
+struct filterMap {
+    const char *src;
+    int srcLen;
+    const char *dst;
+    int dstLen;
+};
+typedef struct filterMap filterMap_t;
+
+int VoiceMaker::Filter(char **filterdText, char *text) {
+    int i;
+    char *newText, *newTextBack;
+    int textLength, newTextLength;
+    char *exist;
+    filterMap_t *filter;
+    filterMap_t filterTable[]={
+        { "！", sizeof("！") -1, "", sizeof("") -1 },
+        { "!", sizeof("!") -1, "", sizeof("") -1 },
+        { "＝", sizeof("＝") -1, "イコール", sizeof("イコール") -1 },
+        { "=", sizeof("=") -1, "イコール", sizeof("イコール") -1 },
+        { "　", sizeof("　") -1, "", sizeof("") -1 },
+        { " ", sizeof(" ") -1, "", sizeof("") -1 },
+        { "づ", sizeof("づ") -1, "ず", sizeof("ず") -1 },
+        { "ヅ", sizeof("ヅ") -1, "ズ", sizeof("ズ") -1 },
+        { "ゔぁ", sizeof("ゔぁ") -1, "ば", sizeof("ば") -1 },
+        { "ヴァ", sizeof("ヴァ") -1, "バ", sizeof("バ") -1 },
+        { "ゔぃ", sizeof("ゔぃ") -1, "び", sizeof("び") -1 },
+        { "ヴィ", sizeof("ヴィ") -1, "ビ", sizeof("ビ") -1 },
+        { "ゔ", sizeof("ゔ") -1, "ぶ", sizeof("ぶ") -1 },
+        { "ヴ", sizeof("ヴ") -1, "ブ", sizeof("ブ") -1 },
+        { "ゔぇ", sizeof("ゔぇ") -1, "べ", sizeof("べ") -1 },
+        { "ヴェ", sizeof("ヴェ") -1, "ベ", sizeof("ベ") -1 },
+        { "ゔぉ", sizeof("ゔぉ") -1, "ぼ", sizeof("ぼ") -1 },
+        { "ヴォ", sizeof("ヴォ") -1, "ボ", sizeof("ボ") -1 },
+    };
+
+    if (newText == NULL ||
+        text == NULL ||
+        textLength < 1) {
+        return 1;
+    }
+    textLength = strlen(text);
+    newTextLength = textLength * 8;
+    newText = (char *)malloc(newTextLength);
+    if (!newText) {
+        return 2;
+    }
+    newTextBack = (char *)malloc(newTextLength);
+    if (!newTextBack) {
+        free(newText);
+        return 3;
+    }
+    strcpy(newText, text);
+    for (i = 0; i < sizeof(filterTable)/sizeof(filterTable[0]); i++ ) {
+       filter = &filterTable[i];
+       if (textLength < filter->srcLen) {
+           continue;
+       }
+       if (newTextLength < filter->dstLen) {
+           continue;
+       }
+       while(1) {
+           exist = strstr(newText, filter->src);
+           if (!exist) {
+               break;
+           }
+           strcpy(newTextBack, exist);
+           strcpy(exist, filter->dst);
+           strcpy(exist + filter->dstLen, newTextBack + filter->srcLen);
+       }
+    }
+    free(newTextBack);
+    *filterdText = newText;
+
+    return 0;
+}
+
+void VoiceMaker::ConvertFree(char *newText, mecab_t *mecab, char *filterdText, unsigned char *modelData, unsigned char *waveData) {
     free(newText);
     if (mecab) {
         mecab_destroy(mecab);
+    }
+    if (filterdText) {
+        FilterFree(filterdText);
     }
     if (modelData) {
         LoadFileFree(modelData);
@@ -152,6 +238,7 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
     char *argv[] = { "voicemaker" };
     char *newText = NULL;
     char *newTextPtr = NULL;
+    char *filterdText = NULL;
     int newTextLength = textLength * 15 * 4;
     unsigned char *modelData = NULL;
     size_t modelSize;
@@ -159,6 +246,7 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
     int waveSize;
     char *waveBase64 = NULL;
     int waveBase64Len;
+    int result;
 
     newText = (char *)malloc(newTextLength);
     if (!newText) {
@@ -166,15 +254,16 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
          return ThrowException(Exception::Error(String::New(error)));
     }
     newTextPtr = newText;
+
     mecab = mecab_new(argc, argv);
     if (!mecab) {
-         ConvertFree(newText, mecab, modelData, waveData);
+         ConvertFree(newText, mecab, filterdText, modelData, waveData);
          error = "failed in create instance of Mecab::Tagger.";
          return ThrowException(Exception::Error(String::New(error)));
     }
     node = mecab_sparse_tonode(mecab, text);
     if (!node) {
-         ConvertFree(newText, mecab, modelData, waveData);
+         ConvertFree(newText, mecab, filterdText, modelData, waveData);
          error = "failed in create instance of Mecab::Node.";
          return ThrowException(Exception::Error(String::New(error)));
     }
@@ -197,21 +286,48 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
              }
              currentPtr++;
          }
-         if (startPtr && endPtr) {
-             length = endPtr - startPtr;
-             memcpy(newTextPtr, startPtr, length);
-             newTextPtr += length;
+         if (!startPtr && !endPtr && delimiter < 7) {
+                 startPtr = node->surface;
+                 length = node->length;
+                 memcpy(newTextPtr, startPtr, length);
+                 newTextPtr += length;
+         } else {
+             if (startPtr && endPtr) {
+                 length = endPtr - startPtr;
+                 memcpy(newTextPtr, startPtr, length);
+                 newTextPtr += length;
+             }
          }
     }
     mecab_destroy(mecab);
     mecab = NULL;
     *newTextPtr = '\0';
+    if ((result = Filter(&filterdText, newText))) {
+        ConvertFree(newText, mecab, filterdText, modelData, waveData);
+        switch (result) {
+        case 1:
+            error = "failed in filtering. invalid argument.";
+            break;
+        case 2:
+            error = "failed in filtering. failed in allocate memory of filterd text.";
+            break;
+        case 3:
+            error = "failed in filtering. failed in allocate memory of backup filterd text.";
+            break;
+        default:
+            error = "failed in load file of model. unkown.";
+            break;
+        }
+        return ThrowException(Exception::Error(String::New(error)));
+    }
+    free(newText);
+    newText = NULL;
+
     if (modelFile) {
-        int result;
         if ((result = LoadFile(modelFile, &modelData, &modelSize))) {
-            ConvertFree(newText, mecab, modelData, waveData);
+            ConvertFree(newText, mecab, filterdText, modelData, waveData);
             switch (result) {
-	    case 1:
+            case 1:
                 error = "failed in load file of model. not found model file.";
                 break;
             case 2:
@@ -230,18 +346,18 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
             return ThrowException(Exception::Error(String::New(error)));
         }
     }
-    waveData = AquesTalk2_Synthe_Utf8(newText, speed, &waveSize, modelData);
+    waveData = AquesTalk2_Synthe_Utf8(filterdText, speed, &waveSize, modelData);
     if (!waveData) {
-        ConvertFree(newText, mecab, modelData, waveData);
+        ConvertFree(newText, mecab, filterdText, modelData, waveData);
         error = "failed in create data of wave.";
         return ThrowException(Exception::Error(String::New(error)));
     }
-    free(newText);
-    newText = NULL;
+    free(filterdText);
+    filterdText = NULL;
     LoadFileFree(modelData);
     modelData = NULL;
     if (Base64Encode(&waveBase64, &waveBase64Len, waveData, waveSize)) {
-        ConvertFree(newText, mecab, modelData, waveData);
+        ConvertFree(newText, mecab, filterdText, modelData, waveData);
         error = "failed in encode to base64.";
         return ThrowException(Exception::Error(String::New(error)));
     }
