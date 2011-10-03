@@ -187,7 +187,7 @@ int VoiceMaker::Filter(char **filterdText, char *text) {
         { "ょ", sizeof("ょ") -1, "ョ", sizeof("ョ") -1 },
     };
 
-    if (newText == NULL ||
+    if (filterdText == NULL ||
         text == NULL ||
         textLength < 1) {
         return 1;
