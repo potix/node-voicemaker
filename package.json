@@ -1,7 +1,7 @@
 {
         "name": "voicemaker",
         "main": "voicemaker",
-        "version": "1.0",
+        "version": "0.0.2",
         "description": "convert text to voice data",
         "homepage": "https://github.com/potix/node-voicemaker",
         "author": {
