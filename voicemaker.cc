@@ -190,11 +190,13 @@ int VoiceMaker::Filter(char **filterdText, char *text) {
     };
 
     if (filterdText == NULL ||
-        text == NULL ||
-        textLength < 1) {
+        text == NULL) {
         return 1;
     }
     textLength = strlen(text);
+    if (textLength < 1) {
+        return 1;
+    }
     newTextLength = textLength * 8;
     newText = (char *)malloc(newTextLength);
     if (!newText) {
@@ -265,6 +267,10 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
     int waveBase64Len;
     int result;
 
+    if (textLength < 1) {
+        Local<String> dataString = String::New("");
+        return scope.Close(dataString);
+    }
     newText = (char *)malloc(newTextLength);
     if (!newText) {
          error = "failed in allocate buffer of new text.";
