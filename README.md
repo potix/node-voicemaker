@@ -55,8 +55,8 @@
 
 単語を削除する
 
-        voicemaker.delPreferredWord('voicemaker', 'ボイスメーカー');
-        voicemaker.delFilterWord('voicemaker', 'ボイスメーカー');
+        voicemaker.delPreferredWord('voicemaker');
+        voicemaker.delFilterWord('voicemaker');
 
 テキストのみを指定して変換
 
@@ -90,6 +90,8 @@ filter辞書はaqestalk2で音声変換を行う前に文字列置換を行う�
 filter辞書に半角スペースの登録をしても無視されます。
 
 preferred辞書、filter辞書共に半角数字の指定をしても無視されます。
+
+同一辞書に同じキーを持つ単語を登録を登録した場合は先勝ちになります。
 
 ## Notes
 
