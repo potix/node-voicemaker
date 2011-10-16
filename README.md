@@ -23,6 +23,20 @@
         var VoiceMaker = require('voicemaker').VoiceMaker;
         var voicemaker = new VoiceMaker();
         voicemaker.setDictionary(preferredDic, filterDic);
+        voicemaker.loadDictionary();
+        try { 
+             var waveData = this.data.voicemaker.convert("テキスト");
+             console.log(waveData);
+        } catch (e) {
+             console.log(e.message);
+             console.log(this.data.voicemaker.getErrorText());
+        }
+
+
+辞書を設定する
+
+        voicemaker.setDictionary(preferredDic, filterDic);
+
 
 辞書を読み込む
 
@@ -58,6 +72,11 @@
 
 	voicemaker.convert("喋らせたいテキスト", 80, "/usr/local/share/aquestalk2/phont/aq_f1b.phont");
 
+変換処理でエラーが発生した場合のテキストを取得する
+
+	voicemaker.getErrorText();
+
+
 ## About dictionary
 
 preferred辞書はmecabの辞書変換時に使われ、mecabの辞書よりも優先される辞書です。
@@ -73,6 +92,5 @@ utf-8エンコードのmecabの辞書がインストールされている必要�
 aquestalk2がインストールされていなければなりません。
 
 node.js-0.4.12でしか動作確認をしていません。
-
 
 

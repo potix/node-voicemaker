@@ -503,6 +503,7 @@ public:
     static void Initialize(const Handle<Object>& target);
     static Handle<Value> New(const Arguments& args);
     static Handle<Value> Convert(const Arguments& args);
+    static Handle<Value> GetErrorText(const Arguments& args);
     static Handle<Value> SetDictionary(const Arguments& args);
     static Handle<Value> LoadDictionary(const Arguments& args);
     static Handle<Value> SaveDictionary(const Arguments& args);
@@ -517,6 +518,8 @@ public:
     ~VoiceMaker();
 
 private:
+
+    char *errorText;
     const char *base64char;
     Dictionary *dictionary;
  
@@ -537,11 +540,13 @@ private:
 };
 
 VoiceMaker::VoiceMaker() {
+    errorText = NULL;
     base64char = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     dictionary = new Dictionary();
 }
 
 VoiceMaker::~VoiceMaker() {
+    free(errorText);
     delete dictionary;
 }
 
@@ -732,8 +737,6 @@ int VoiceMaker::Fixup(char **fixupText, const char *text) {
     return 0;
 }
 
-
-
 void VoiceMaker::FilterFree(char *filterdText) {
     free(filterdText);
 }
@@ -785,7 +788,8 @@ int VoiceMaker::Filter(char **filterdText, const char *text) {
            free(newTextBack);
            return 7;
        }
-       if (*dicSrc >= 0x30 && *dicSrc < 0x39 && dicSrcLen == 1) {
+       if ((*dicSrc >= 0x30 && *dicSrc < 0x39 && dicSrcLen == 1) ||
+           (*dicSrc == ' ' && dicSrcLen == 1)) {
            continue;
        }
        if (textLength < dicSrcLen) {
@@ -958,7 +962,8 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
     mecab = NULL;
     *newTextPtr = '\0';
     if ((result = Filter(&filterText, newText))) {
-        printf("%s\n", newText);
+        free(errorText);
+        errorText = strdup(newText);
         ConvertFree(newText, mecab, fixupText, filterText, modelData, waveData);
         switch (result) {
         case 1:
@@ -991,7 +996,8 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
     free(newText);
     newText = NULL;
     if ((result = Fixup(&fixupText, filterText))) {
-        printf("%s\n", filterText);
+        free(errorText);
+        errorText = strdup(filterText);
         ConvertFree(newText, mecab, fixupText, filterText, modelData, waveData);
         switch (result) {
         case 1:
@@ -1042,7 +1048,8 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
     }
     waveData = AquesTalk2_Synthe_Utf8(fixupText, speed, &waveSize, modelData);
     if (!waveData) {
-        printf("%s\n", fixupText);
+        free(errorText);
+        errorText = strdup(fixupText);
         ConvertFree(newText, mecab, fixupText, filterText, modelData, waveData);
         return ThrowException(Exception::Error(String::New("failed in create data of wave.")));
     }
@@ -1220,6 +1227,21 @@ Handle<Value> VoiceMaker::Convert(const Arguments& args) {
     }
 }
 
+Handle<Value> VoiceMaker::GetErrorText(const Arguments& args) {
+    HandleScope scope;
+    char *errorText = "";
+
+    if (args.Length() > 0) {
+        return scope.Close(ThrowException(Exception::Error(String::New("Bad arguments. must be no argument."))));
+    }
+    VoiceMaker *voicemaker = Unwrap<VoiceMaker>(args.This());
+    if (voicemaker->errorText) {
+        errorText = voicemaker->errorText;
+    }
+    Local<String> errorString = String::New(errorText);
+    return scope.Close(errorString);
+}
+
 Handle<Value> VoiceMaker::New(const Arguments& args) {
     HandleScope scope;
     VoiceMaker *voiceMaker = new VoiceMaker();
@@ -1240,6 +1262,7 @@ void VoiceMaker::Initialize(const Handle<Object>& target) {
     NODE_SET_PROTOTYPE_METHOD(functionTemplate, "addFilterWord", VoiceMaker::AddFilterWord);
     NODE_SET_PROTOTYPE_METHOD(functionTemplate, "delFilterWord", VoiceMaker::DelFilterWord);
     NODE_SET_PROTOTYPE_METHOD(functionTemplate, "convert", VoiceMaker::Convert);
+    NODE_SET_PROTOTYPE_METHOD(functionTemplate, "getErrorText", VoiceMaker::GetErrorText);
     target->Set(String::New("VoiceMaker"), functionTemplate->GetFunction());
 }
 

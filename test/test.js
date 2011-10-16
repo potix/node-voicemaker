@@ -216,25 +216,31 @@ var voicemaker = new VoiceMaker();
 voicemaker.setDictionary(prefferdPath, filterPath)
 voicemaker.loadDictionary()
 voicemaker.loadDictionary()
-voicemaker.convert('私は、モモンガの次男の孫の長男の従兄弟のへべれけという者です。');
-voicemaker.convert('私は、モモンガの次男の孫の長男の従兄弟のへべれけという者です。', '/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('私は、モモンガの次男の孫の長男の従兄弟のへべれけという者です。', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('ジオンガ', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('ってってってーってってってて', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('ヴ', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('なんだってー！そんなヴぁかなー', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('づづづづづづ、なんだってー！そんなゔぁかなー', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('あ い　う　え　お　 か き く', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('あああ　ううう', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('', 80,'/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('かかかか・おあ\'えお,こ', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('≪≫あ〔〕『』【】［］()<>{}＜＞「」〈〉[]《》', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('30年以上に及ぶキャリアの中で、かつては果樹園が広がるのどかな土地で', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('ジョブズ氏は、30年以上に及ぶキャリアの中で、かつては果樹園が広がるのどかな土地であったシリコンバレーを（情報技術）業界のイノベーションの中心地へと変ぼうさせる上で大いに貢献した。', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('<NUM VAL=3512>の/はーどでぃ\'_ス_クに、<NUMK VAL=2006 COUNTER=ねん>、<NUMK VAL=1 COUNTER=がつ>;<NUMK VAL=15 COUNTER=にち>', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('いおjg；えをいjg；wj；おえjwごいめw；いvm；うぇm；おあうぇいjg；おえうぃjぐぁ', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('１０１回', 80,'/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('おwぺkfwぺおkg：えw', 80,'/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('ubuntu 11/b00', 80,'/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('ubuntu 11/00', 80,'/usr/local/share/aquestalk2/phont/aq_rm.phont');
-voicemaker.convert('ubuntu 11.00', 80,'/usr/local/share/aquestalk2/phont/aq_rm.phont');
+try {
+    voicemaker.convert('私は、モモンガの次男の孫の長男の従兄弟のへべれけという者です。');
+    voicemaker.convert('私は、モモンガの次男の孫の長男の従兄弟のへべれけという者です。', '/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('私は、モモンガの次男の孫の長男の従兄弟のへべれけという者です。', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('ジオンガ', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('ってってってーってってってて', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('ヴ', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('なんだってー！そんなヴぁかなー', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('づづづづづづ、なんだってー！そんなゔぁかなー', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('あ い　う　え　お　 か き く', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('あああ　ううう', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('', 80,'/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('かかかか・おあ\'えお,こ', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('≪≫あ〔〕『』【】［］()<>{}＜＞「」〈〉[]《》', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('30年以上に及ぶキャリアの中で、かつては果樹園が広がるのどかな土地で', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('ジョブズ氏は、30年以上に及ぶキャリアの中で、かつては果樹園が広がるのどかな土地であったシリコンバレーを（情報技術）業界のイノベーションの中心地へと変ぼうさせる上で大いに貢献した。', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('<NUM VAL=3512>の/はーどでぃ\'_ス_クに、<NUMK VAL=2006 COUNTER=ねん>、<NUMK VAL=1 COUNTER=がつ>;<NUMK VAL=15 COUNTER=にち>', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('いおjg；えをいjg；wj；おえjwごいめw；いvm；うぇm；おあうぇいjg；おえうぃjぐぁ', 80, '/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('１０１回', 80,'/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('おwぺkfwぺおkg：えw', 80,'/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('ubuntu 11/b00', 80,'/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('ubuntu 11/00', 80,'/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('ubuntu 11.00', 80,'/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert('!"%#$○%&%()0♩0=~0|`{*}+*><?>/,;][\-0987654321', 80,'/usr/local/share/aquestalk2/phont/aq_rm.phont');
+} catch(e) {
+    console.log(e);
+    console.log('bad String -> ' + voicemaker.getErrorText());
+}
