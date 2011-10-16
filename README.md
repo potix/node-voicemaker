@@ -20,8 +20,8 @@
 ## Usage
         var preferredDic = __dirname + '/voicemaker_preferred.dic';
         var filterDic = __dirname + '/voicemaker_preferred.dic';
-	var VoiceMaker = require('voicemaker').VoiceMaker;
-	var voicemaker = new VoiceMaker();
+        var VoiceMaker = require('voicemaker').VoiceMaker;
+        var voicemaker = new VoiceMaker();
         voicemaker.setDictionary(preferredDic, filterDic);
 
 辞書を読み込む
