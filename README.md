@@ -18,45 +18,45 @@
 	make 
 
 ## Usage
-        var preferredDic = __dirname + '/voicemaker_preferred.dic';
-        var filterDic = __dirname + '/voicemaker_preferred.dic';
-        var VoiceMaker = require('voicemaker').VoiceMaker;
-        var voicemaker = new VoiceMaker();
-        voicemaker.setDictionary(preferredDic, filterDic);
-        voicemaker.loadDictionary();
-        try { 
-             var waveData = this.data.voicemaker.convert("テキスト");
-             console.log(waveData);
-        } catch (e) {
-             console.log(e.message);
-             console.log(this.data.voicemaker.getErrorText());
-        }
+	var preferredDic = __dirname + '/voicemaker_preferred.dic';
+	var filterDic = __dirname + '/voicemaker_preferred.dic';
+	var VoiceMaker = require('voicemaker').VoiceMaker;
+	var voicemaker = new VoiceMaker();
+	voicemaker.setDictionary(preferredDic, filterDic);
+	voicemaker.loadDictionary();
+	try { 
+	     var waveData = this.data.voicemaker.convert("テキスト");
+	     console.log(waveData);
+	} catch (e) {
+	     console.log(e.message);
+	     console.log(this.data.voicemaker.getErrorText());
+	}
 
 
 辞書を設定する (入力値:ファイルパスを文字列で指定)
 
-        voicemaker.setDictionary('./preferred.dic', './filter.dic');
+	voicemaker.setDictionary('./preferred.dic', './filter.dic');
 
 辞書を読み込む
 
-        voicemaker.loadDictionary();
+	voicemaker.loadDictionary();
 
 辞書を保存する
 
-        voicemaker.saveDictionary();
+	voicemaker.saveDictionary();
 
 単語を登録する
-        
-        'voicemaker'という単語を'ボイスメーカー'という読みに変換
-        voicemaker.addPreferredWord('voicemaker', 'ボイスメーカー');
-            
-        'voicemaker'という文字列を'ボイスメーカー'という文字列に置換
-        voicemaker.addFilterWord('voicemaker', 'ボイスメーカー');
+	
+	'voicemaker'という単語を'ボイスメーカー'という読みに変換
+	voicemaker.addPreferredWord('voicemaker', 'ボイスメーカー');
+	    
+	'voicemaker'という文字列を'ボイスメーカー'という文字列に置換
+	voicemaker.addFilterWord('voicemaker', 'ボイスメーカー');
 
 単語を削除する
 
-        voicemaker.delPreferredWord('voicemaker');
-        voicemaker.delFilterWord('voicemaker');
+	voicemaker.delPreferredWord('voicemaker');
+	voicemaker.delFilterWord('voicemaker');
 
 テキストのみを指定して変換
 
