@@ -33,10 +33,9 @@
         }
 
 
-辞書を設定する
+辞書を設定する (入力値:ファイルパスを文字列で指定)
 
-        voicemaker.setDictionary(preferredDic, filterDic);
-
+        voicemaker.setDictionary('./preferred.dic', './filter.dic');
 
 辞書を読み込む
 
@@ -47,8 +46,11 @@
         voicemaker.saveDictionary();
 
 単語を登録する
-
+        
+        'voicemaker'という単語を'ボイスメーカー'という読みに変換
         voicemaker.addPreferredWord('voicemaker', 'ボイスメーカー');
+            
+        'voicemaker'という文字列を'ボイスメーカー'という文字列に置換
         voicemaker.addFilterWord('voicemaker', 'ボイスメーカー');
 
 単語を削除する
@@ -81,7 +83,13 @@
 
 preferred辞書はmecabの辞書変換時に使われ、mecabの辞書よりも優先される辞書です。
 
+preferred辞書に登録した単語の読みに半角スペースが含まれていた場合正しく変換できません。
+
 filter辞書はaqestalk2で音声変換を行う前に文字列置換を行うための辞書です。
+
+filter辞書に半角スペースの登録をしても無視されます。
+
+preferred辞書、filter辞書共に半角数字の指定をしても無視されます。
 
 ## Notes
 
