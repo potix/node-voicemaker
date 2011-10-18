@@ -4,18 +4,22 @@
 
 なのでドキュメントも日本語で書いてます。
 
+
 ## Installing 
 
-	TODO npm install
+	not yet
+	TODO: npm install
 
 
 ## Cloning the repository
 
 	git clone git://github.com/potix/node-voicemaker.git
 
+
 ## Compiling and test
 
 	make 
+
 
 ## Usage
 	var preferredDic = __dirname + '/voicemaker_preferred.dic';
