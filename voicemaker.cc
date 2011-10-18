@@ -789,7 +789,8 @@ int VoiceMaker::Filter(char **filterdText, const char *text) {
            return 7;
        }
        if ((*dicSrc >= 0x30 && *dicSrc < 0x39 && dicSrcLen == 1) ||
-           (*dicSrc == ' ' && dicSrcLen == 1)) {
+           (*dicSrc == ' ' && dicSrcLen == 1) ||
+           (*dicSrc == '-' && dicSrcLen == 1)) {
            continue;
        }
        if (textLength < dicSrcLen) {
@@ -897,6 +898,13 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
              memcpy(newTextPtr, node->surface, node->length);
              newTextPtr += node->length;
              continue;
+         } else if (*node->surface == '-' && node->length == 1) {
+             if (digit != 0) {
+                 digit += 1;
+                 memcpy(newTextPtr, node->surface, node->length);
+                 newTextPtr += node->length;
+                 continue;
+             }
          } else {
              if (digit != 0) {
                  memcpy(newTextPtr, " ", 1);
@@ -905,6 +913,7 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
              }
              digit = 0;
          }
+          
          if (dictionary->GetDstWord(node->surface, node->length, &dst, &dstLen) == 0) {
              memcpy(newTextPtr, dst, dstLen);
              newTextPtr += dstLen;
