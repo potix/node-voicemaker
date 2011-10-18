@@ -5,6 +5,7 @@ var voicemaker = new VoiceMaker();
 voicemaker.setDictionary(prefferdPath, filterPath)
 voicemaker.addPreferredWord('?','？')
 voicemaker.addPreferredWord('；',',')
+voicemaker.addPreferredWord('-','ハイフン')
 voicemaker.addPreferredWord('＋','プラス')
 voicemaker.addPreferredWord('／','スラ')
 voicemaker.addPreferredWord('@','アット')
@@ -239,6 +240,7 @@ try {
     voicemaker.convert('ubuntu 11/b00', 80,'/usr/local/share/aquestalk2/phont/aq_rm.phont');
     voicemaker.convert('ubuntu 11/00', 80,'/usr/local/share/aquestalk2/phont/aq_rm.phont');
     voicemaker.convert('ubuntu 11.00', 80,'/usr/local/share/aquestalk2/phont/aq_rm.phont');
+    voicemaker.convert(' 11-00 ruhhff-gggg feijiefj-44 48877-feokfeo', 80,'/usr/local/share/aquestalk2/phont/aq_rm.phont');
     voicemaker.convert('!"%#$○%&%()0♩0=~0|`{*}+*><?>/,;][\-0987654321', 80,'/usr/local/share/aquestalk2/phont/aq_rm.phont');
 } catch(e) {
     console.log(e);
