@@ -1,6 +1,6 @@
 srcdir = '.'
 blddir = 'build'
-VERSION = '0.0.2'
+VERSION = '0.0.4'
 
 def set_options(opt):
   opt.tool_options('compiler_cxx')
@@ -12,7 +12,7 @@ def configure(conf):
   print "    aquestalk2 installed"
   conf.check_tool('compiler_cxx')
   conf.check_tool('node_addon')
-  conf.env.append_value("CXXFLAGS", "-I/usr/local/include -O2")
+  conf.env.append_value("CXXFLAGS", "-I/usr/local/include")
   conf.env.append_value("LINKFLAGS", "-L/usr/local/lib")
   conf.env.append_value("LIB", "AquesTalk2")
   conf.env.append_value("LIB", "mecab")

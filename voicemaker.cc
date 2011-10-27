@@ -139,7 +139,7 @@ private:
 };
 
 Dictionary::Dictionary() {
-    hashSize = 521;
+    hashSize = 2053;
     preferredDictionaryPath = NULL;
     filterDictionaryPath = NULL;
     preferredExtensionRatio = 2;
@@ -239,7 +239,7 @@ int Dictionary::LoadDictionary() {
             char *srcStartPtr = NULL;
             char *dstStartPtr = NULL;
             char *endPtr = NULL;
-            if (*line == '\0' || *line == '#') {
+            if (*line == '\0') {
                 continue;
             }
             srcStartPtr = line;
@@ -788,9 +788,10 @@ int VoiceMaker::Filter(char **filterdText, const char *text) {
            free(newTextBack);
            return 7;
        }
-       if ((*dicSrc >= 0x30 && *dicSrc < 0x39 && dicSrcLen == 1) ||
+       if ((*dicSrc >= 0x30 && *dicSrc <= 0x39 && dicSrcLen == 1) ||
            (*dicSrc == ' ' && dicSrcLen == 1) ||
-           (*dicSrc == '-' && dicSrcLen == 1)) {
+           (*dicSrc == '-' && dicSrcLen == 1) ||
+           (*dicSrc == '.' && dicSrcLen == 1)) {
            continue;
        }
        if (textLength < dicSrcLen) {
@@ -881,6 +882,7 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
          return ThrowException(Exception::Error(String::New("failed in create instance of Mecab::Node.")));
     }
     int digit = 0;
+    int separator = 0;
     for (; node; node = node->next) {
          const char *startPtr = NULL;
          const char *endPtr = NULL;
@@ -889,22 +891,40 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
          int length;
          int counter = 0;
 
-         if (*node->surface >= 0x30 && *node->surface < 0x39 && node->length == 1) {
+         if (*node->surface >= 0x30 && *node->surface <= 0x39 && node->length == 1) {
+             if (separator != 0) {
+                 newTextPtr -= separator;
+             }
              if (digit == 0) {
                  memcpy(newTextPtr, " ", 1);
                  newTextPtr += 1;
              }
-             digit += 1;
              memcpy(newTextPtr, node->surface, node->length);
              newTextPtr += node->length;
+             digit += 1;
+             separator = 0;
              continue;
-         } else if (*node->surface == '-' && node->length == 1) {
+         } else if ((*node->surface == '-' && node->length == 1) ||
+                    (*node->surface == '.' && node->length == 1)) {
              if (digit != 0) {
-                 digit += 1;
                  memcpy(newTextPtr, node->surface, node->length);
                  newTextPtr += node->length;
+                 digit += 1;
+                 separator = 0;
                  continue;
              }
+             digit = 0;
+             separator = 0;
+         } else if (*node->surface == ',' && node->length == 1) {
+             if (digit != 0) {
+                 memcpy(newTextPtr, node->surface, node->length);
+                 newTextPtr += node->length;
+                 digit += 1;
+                 separator += 1;
+                 continue;
+             }
+             digit = 0;
+             separator = 0;
          } else {
              if (digit != 0) {
                  memcpy(newTextPtr, " ", 1);
@@ -912,6 +932,7 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
                  counter = 1;
              }
              digit = 0;
+             separator = 0;
          }
           
          if (dictionary->GetDstWord(node->surface, node->length, &dst, &dstLen) == 0) {
