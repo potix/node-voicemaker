@@ -105,7 +105,7 @@ int WordPair::Set(const char *src, int srcLen, const char *dst, int dstLen) {
 
 class Dictionary  {
 public:
-    const static int UNKNOWN = 1;
+    const static int PREFERRED = 1;
     const static int FILTER = 2;
     int SetDictionaryPath(const char *preferredDictionaryPath, const char *filterDictionary);
     int LoadDictionary();
@@ -139,7 +139,7 @@ private:
 };
 
 Dictionary::Dictionary() {
-    hashSize = 2053;
+    hashSize = 5003;
     preferredDictionaryPath = NULL;
     filterDictionaryPath = NULL;
     preferredExtensionRatio = 2;
@@ -183,10 +183,10 @@ int Dictionary::GetHashValue(const char *key, int keyLen) {
 
 int Dictionary::ClearDictionary(int dictType) {
     int i;
-    if (dictType != UNKNOWN && dictType != FILTER) {
+    if (dictType != PREFERRED && dictType != FILTER) {
         return 1;
     }
-    if (dictType == UNKNOWN) {
+    if (dictType == PREFERRED) {
         for (i = 0; i < hashSize; i++) {
             list<WordPair *>::iterator wordPairIterator = preferredDictionary[i].begin();
             while (wordPairIterator != preferredDictionary[i].end()) {
@@ -214,7 +214,7 @@ int Dictionary::LoadDictionary() {
     char line[(WordPair::WORD_MAX_LENGTH * 2) + 2];
     const char *preferredPath = "./voicemaker_preferred.dict";
     const char *filterPath = "./voicemaker_filter.dict";
-    int dictTypes[] = { UNKNOWN, FILTER };
+    int dictTypes[] = { PREFERRED, FILTER };
     int i;
 
     if (preferredDictionaryPath) {
@@ -227,7 +227,7 @@ int Dictionary::LoadDictionary() {
         if (ClearDictionary(dictTypes[i])) {
             return 1;
         }
-        if (dictTypes[i] == UNKNOWN) {
+        if (dictTypes[i] == PREFERRED) {
             fp = fopen(preferredPath, "r");
         } else if (dictTypes[i] == FILTER) {
             fp = fopen(filterPath, "r");
@@ -353,10 +353,10 @@ int Dictionary::AddWordPair(const char *src, int srcLen, const char *dst, int ds
         srcLen <= 0 ||
         dst == NULL ||
         dstLen <= 0 ||
-        (dictType != UNKNOWN && dictType != FILTER)) {
+        (dictType != PREFERRED && dictType != FILTER)) {
         return 1;
     }
-    if (dictType == UNKNOWN) {
+    if (dictType == PREFERRED) {
         int hashValue = GetHashValue(src, srcLen);
         WordPair *wordPair = new WordPair();
         preferredDictionary[hashValue].push_front(wordPair);
@@ -383,10 +383,10 @@ int Dictionary::AddWordPair(const char *src, int srcLen, const char *dst, int ds
 int Dictionary::DelWordPair(const char *src, int srcLen, int dictType) {
     if (src == NULL ||
         srcLen <= 0 ||
-        (dictType != UNKNOWN && dictType != FILTER)) {
+        (dictType != PREFERRED && dictType != FILTER)) {
         return 1;
     }
-    if (dictType == UNKNOWN) {
+    if (dictType == PREFERRED) {
         int hashValue = GetHashValue(src, srcLen);
         list<WordPair *>::iterator wordPairIterator = preferredDictionary[hashValue].begin();
         while (wordPairIterator != preferredDictionary[hashValue].end()) {
@@ -486,10 +486,10 @@ int Dictionary::GetWordPairNext(char **src, int *srcLen, char **dst, int *dstLen
 }
 
 int Dictionary::GetExtensionRatio(int *ratio, int dictType) {
-    if (dictType != UNKNOWN && dictType != FILTER) {
+    if (dictType != PREFERRED && dictType != FILTER) {
         return 1;
     }
-    if (dictType == UNKNOWN) {
+    if (dictType == PREFERRED) {
         *ratio = preferredExtensionRatio;
     } else if (dictType == FILTER) {
         *ratio = filterExtensionRatio;
@@ -523,7 +523,7 @@ private:
     const char *base64char;
     Dictionary *dictionary;
  
-    void ConvertFree(char *newText, mecab_t *mecab, char *fixupText, char *filterFree, unsigned char *modelData, unsigned char *waveData);
+    void ConvertFree(char *preText, char *newText, mecab_t *mecab, char *fixupText, char *filterFree, unsigned char *modelData, unsigned char *waveData);
     Handle<Value> Convert(const char* text, int textLength, int speed, const char *modelFile);
 
     void FixupFree(char *newText);
@@ -816,7 +816,8 @@ int VoiceMaker::Filter(char **filterdText, const char *text) {
     return 0;
 }
 
-void VoiceMaker::ConvertFree(char *newText, mecab_t *mecab, char *fixupText, char *filterText, unsigned char *modelData, unsigned char *waveData) {
+void VoiceMaker::ConvertFree(char *preText, char *newText, mecab_t *mecab, char *fixupText, char *filterText, unsigned char *modelData, unsigned char *waveData) {
+    free(preText);
     free(newText);
     if (mecab) {
         mecab_destroy(mecab);
@@ -835,7 +836,7 @@ void VoiceMaker::ConvertFree(char *newText, mecab_t *mecab, char *fixupText, cha
     }
 }
 
-Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  const char *modelFile) {
+Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed, const char *modelFile) {
     HandleScope scope;
     const char *error = NULL;
     mecab_t *mecab = NULL;
@@ -857,28 +858,55 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
     char *dst;
     int dstLen;
     int ext;
+    char *preText = NULL;
+    int preTextLen;
+    int prevAlpha;
+    int i;
 
     if (textLength < 1) {
         Local<String> dataString = String::New("");
         return scope.Close(dataString);
     }
-    if (dictionary->GetExtensionRatio(&ext, Dictionary::UNKNOWN)) {
+    preText = (char *)malloc(textLength * 2);
+    if (!preText) {
+         return scope.Close(ThrowException(Exception::Error(String::New("failed in allocate buffer of pre text."))));
+    }
+    preTextLen = 0;
+    prevAlpha = 1;
+    for (i = 0; i < textLength; i++) {
+        if (isalpha(text[i])) {
+            if (text[i] != ' ' && !prevAlpha) {
+                preText[preTextLen++] = ',';
+            }
+            preText[preTextLen++] = text[i];
+            prevAlpha = 1;
+        } else {
+            if (text[i] != ' ' && prevAlpha) {
+                preText[preTextLen++] = ',';
+            }
+            preText[preTextLen++] = text[i];
+            prevAlpha = 0;
+        }
+    }
+    preText[preTextLen++] = '\0';
+    if (dictionary->GetExtensionRatio(&ext, Dictionary::PREFERRED)) {
         scope.Close(ThrowException(Exception::Error(String::New("failed in get extension ratio of preferred dictionary."))));
     }
-    newTextLength = textLength * 15 * 4 * ext;
+    newTextLength = preTextLen * 15 * 4 * ext;
     newText = (char *)malloc(newTextLength);
     if (!newText) {
+         ConvertFree(preText, newText, mecab, fixupText, filterText, modelData, waveData);
          return scope.Close(ThrowException(Exception::Error(String::New("failed in allocate buffer of new text."))));
     }
     newTextPtr = newText;
     mecab = mecab_new(argc, argv);
     if (!mecab) {
-         ConvertFree(newText, mecab, fixupText, filterText, modelData, waveData);
+         ConvertFree(preText, newText, mecab, fixupText, filterText, modelData, waveData);
          return ThrowException(Exception::Error(String::New("failed in create instance of Mecab::Tagger.")));
     }
-    node = mecab_sparse_tonode(mecab, text);
+    node = mecab_sparse_tonode(mecab, preText);
     if (!node) {
-         ConvertFree(newText, mecab, fixupText, filterText, modelData, waveData);
+         ConvertFree(preText, newText, mecab, fixupText, filterText, modelData, waveData);
          return ThrowException(Exception::Error(String::New("failed in create instance of Mecab::Node.")));
     }
     int digit = 0;
@@ -988,13 +1016,15 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
         memcpy(newTextPtr, " ", 1);
         newTextPtr += 1;
     }
+    *newTextPtr = '\0';
     mecab_destroy(mecab);
     mecab = NULL;
-    *newTextPtr = '\0';
+    free(preText);
+    preText = NULL;
     if ((result = Filter(&filterText, newText))) {
         free(errorText);
         errorText = strdup(newText);
-        ConvertFree(newText, mecab, fixupText, filterText, modelData, waveData);
+        ConvertFree(preText, newText, mecab, fixupText, filterText, modelData, waveData);
         switch (result) {
         case 1:
             error = "invalid argument in filter.";
@@ -1028,7 +1058,7 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
     if ((result = Fixup(&fixupText, filterText))) {
         free(errorText);
         errorText = strdup(filterText);
-        ConvertFree(newText, mecab, fixupText, filterText, modelData, waveData);
+        ConvertFree(preText, newText, mecab, fixupText, filterText, modelData, waveData);
         switch (result) {
         case 1:
             error = "invalid argument in fixup.";
@@ -1055,7 +1085,7 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
     filterText = NULL;
     if (modelFile) {
         if ((result = LoadFile(modelFile, &modelData, &modelSize))) {
-            ConvertFree(newText, mecab, fixupText, filterText, modelData, waveData);
+            ConvertFree(preText, newText, mecab, fixupText, filterText, modelData, waveData);
             switch (result) {
             case 1:
                 error = "not found model file in model file loader.";
@@ -1080,7 +1110,7 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
     if (!waveData) {
         free(errorText);
         errorText = strdup(fixupText);
-        ConvertFree(newText, mecab, fixupText, filterText, modelData, waveData);
+        ConvertFree(preText, newText, mecab, fixupText, filterText, modelData, waveData);
         return ThrowException(Exception::Error(String::New("failed in create data of wave.")));
     }
     FilterFree(fixupText);
@@ -1088,7 +1118,7 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed,  
     LoadFileFree(modelData);
     modelData = NULL;
     if (Base64Encode(&waveBase64, &waveBase64Len, waveData, waveSize)) {
-        ConvertFree(newText, mecab, fixupText, filterText, modelData, waveData);
+        ConvertFree(preText, newText, mecab, fixupText, filterText, modelData, waveData);
         return scope.Close(ThrowException(Exception::Error(String::New("failed in encode to base64."))));
     }
     AquesTalk2_FreeWave(waveData);
@@ -1183,7 +1213,7 @@ Handle<Value> VoiceMaker::AddWord(const Arguments& args, int dictType) {
 }
 
 Handle<Value> VoiceMaker::AddPreferredWord(const Arguments& args) {
-    return AddWord(args, Dictionary::UNKNOWN);
+    return AddWord(args, Dictionary::PREFERRED);
 }
 
 Handle<Value> VoiceMaker::AddFilterWord(const Arguments& args) {
@@ -1207,7 +1237,7 @@ Handle<Value> VoiceMaker::DelWord(const Arguments& args, int dictType) {
 }
 
 Handle<Value> VoiceMaker::DelPreferredWord(const Arguments& args) {
-    return DelWord(args, Dictionary::UNKNOWN);
+    return DelWord(args, Dictionary::PREFERRED);
 }
 
 Handle<Value> VoiceMaker::DelFilterWord(const Arguments& args) {
