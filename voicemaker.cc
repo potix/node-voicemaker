@@ -666,6 +666,7 @@ int VoiceMaker::Fixup(char **fixupText, const char *text) {
         return 4;
     }
     while (1) {
+        int numk = 1;
         char *num = "NUMK";
         int numLen = sizeof("NUMK") - 1;
         origTextLength = strlen(origText);
@@ -690,6 +691,7 @@ int VoiceMaker::Fixup(char **fixupText, const char *text) {
             newTextCurrent += pmatch[0].rm_so;
             for (i = 0; pmatch[1].rm_so + i < pmatch[1].rm_eo; i++) {
                  if (origText[pmatch[1].rm_so + i] == '-') {
+		     numk = 0;
                      num = "NUM";
                      numLen = sizeof("NUM") - 1;
                  }
@@ -710,22 +712,33 @@ int VoiceMaker::Fixup(char **fixupText, const char *text) {
                  } else {
                      memcpy(&newText[newTextCurrent], &origText[pmatch[1].rm_so + i], 1);
                      newTextCurrent += 1;
-                   
                  }
             }
             if (pmatch[2].rm_so >= 0 && pmatch[2].rm_eo >= 0 ||
                 pmatch[3].rm_so >= 0 && pmatch[3].rm_eo >= 0) {
-                memcpy(&newText[newTextCurrent], " COUNTER=" , 9);
-                newTextCurrent += 9;
-                for (i = 0; i < pmatch[3].rm_eo - pmatch[3].rm_so; i++) {
-                    if (!isascii(origText[pmatch[3].rm_so + i])) {
-                        memcpy(&newText[newTextCurrent], &origText[pmatch[3].rm_so + i], 1);
+                    if (numk) {
+                        memcpy(&newText[newTextCurrent], " COUNTER=" , 9);
+                        newTextCurrent += 9;
+                        for (i = 0; i < pmatch[3].rm_eo - pmatch[3].rm_so; i++) {
+                            if (!isascii(origText[pmatch[3].rm_so + i])) {
+                                memcpy(&newText[newTextCurrent], &origText[pmatch[3].rm_so + i], 1);
+                                newTextCurrent += 1;
+                            }
+                        }
+                        memcpy(&newText[newTextCurrent], ">" , 1);
                         newTextCurrent += 1;
+                    } else {
+                        memcpy(&newText[newTextCurrent], ">" , 1);
+                        newTextCurrent += 1;
+                        for (i = 0; i < pmatch[3].rm_eo - pmatch[3].rm_so; i++) {
+                             memcpy(&newText[newTextCurrent], &origText[pmatch[3].rm_so + i], 1);
+                             newTextCurrent += 1;
+                        }
                     }
-                }
+            } else {
+                memcpy(&newText[newTextCurrent], ">" , 1);
+                newTextCurrent += 1;
             }
-            memcpy(&newText[newTextCurrent], ">" , 1);
-            newTextCurrent += 1;
             strcpy(&newText[newTextCurrent], &origText[pmatch[0].rm_eo]);
         }
         free(origText);
@@ -873,10 +886,10 @@ Handle<Value> VoiceMaker::Convert(const char* text, int textLength, int speed, c
          return scope.Close(ThrowException(Exception::Error(String::New("failed in allocate buffer of pre text."))));
     }
     preTextLen = 0;
-    prevAlpha = 1;
+    prevAlpha = 0;
     for (i = 0; i < textLength; i++) {
         if (isalpha(text[i])) {
-            if (text[i] != ' ' && !prevAlpha) {
+            if (i > 0 && text[i - 1] != ' ' && !prevAlpha) {
                 preText[preTextLen++] = ',';
             }
             preText[preTextLen++] = text[i];
